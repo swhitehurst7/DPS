@@ -10,7 +10,7 @@ sudo apt-get update -y
 sudo apt-get install -y puppet puppetmaster
 sudo ufw disable
 sudo touch /etc/puppet/autosign.conf
-sudo sed -i -e '1iAgent.netbuilder.private' /etc/puppet/autosign.conf
+sudo echo 'Agent.netbuilder.private' >> /etc/puppet/autosign.conf
 sudo sed -i -e '1i127.0.0.1    Master.netbuilder.private' /etc/hosts
 sudo sed -i -e '1i10.50.15.184    Master.netbuilder.private    puppetmaster' /etc/hosts
 SCRIPT
@@ -24,6 +24,7 @@ sudo sed -i -e '1i10.50.15.185  Agent.netbuilder.private    puppet' /etc/hosts
 sudo sed -i -e '1i127.0.0.1     Agent.netbuilder.private    puppet' /etc/hosts
 sudo sed -i -e '1i10.50.15.184  Master.netbuilder.private   puppetmaster' /etc/hosts
 sudo sed -i -e '2iserver=Master.netbuilder.private' /etc/puppet/puppet.conf
+sudo puppet --test --server=Master.netbuilder.private
 SCRIPT
 
 

@@ -4,9 +4,31 @@
 
 # NEW VAGRANT FILE - DPS
 
+$MasterScript = <<SCRIPT
+sudo apt-get install -y openssh-server openssh-client
+sudo apt-get update -y
+sudo apt-get install -y puppet puppetmaster
+sudo ufw disable
+sudo touch /etc/puppet/autosign.conf
+sudo sed -i -e '1iAgent.netbuilder.private' /etc/puppet/autosign.conf
+sudo sed -i -e '1i127.0.0.1    Master.netbuilder.private' /etc/hosts
+sudo sed -i -e '1i10.50.15.184    Master.netbuilder.private    puppetmaster' /etc/hosts
+SCRIPT
+
+$AgentScript = <<SCRIPT
+sudo apt-get install -y openssh-server openssh-client
+sudo apt-get update -y
+sudo ufw disable
+sudo puppet agent --enable
+sudo sed -i -e '1i10.50.15.185  Agent.netbuilder.private    puppet' /etc/hosts
+sudo sed -i -e '1i127.0.0.1     Agent.netbuilder.private    puppet' /etc/hosts
+sudo sed -i -e '1i10.50.15.184  Master.netbuilder.private   puppetmaster' /etc/hosts
+sudo sed -i -e '2iserver=Master.netbuilder.private' /etc/puppet/puppet.conf
+SCRIPT
+
+
 Vagrant.configure(2) do |o|
   o.vm.box = "ubuntu/trusty64"
-  
   o.vm.synced_folder "puppet", "/opt/puppet"
   o.vm.provision "puppet" do |puppet|
     puppet.manifests_path = 'puppet/manifests'
@@ -15,20 +37,24 @@ Vagrant.configure(2) do |o|
   end
 
 
-
   o.vm.define "master" do |master|
     master.vm.network "public_network", ip: "10.50.15.184"
     master.vm.hostname = "Master"
+	master.vm.provision "shell", inline: $MasterScript
   end  
   
+  
   o.vm.define "agent" do |agent|
-    agent.vm.network "public_network", ip: "10.50.15.185"
+    agent.vm.network "public_network",  ip: "10.50.15.185"
 	agent.vm.hostname = "Agent"
+	agent.vm.provision "shell", inline: $AgentScript
   end
+  
+   
   
 end
 
- 
+
 
 
 

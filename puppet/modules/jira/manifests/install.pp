@@ -25,7 +25,7 @@ class jira::install{
 	exec{'update port':
 	    require => Exec['install jira'],
 		cwd => '/opt',
-		command => "sudo sed -i 's/8080/8081/g' /opt/JIRA/conf/server.xml"
+		command => "sudo sed -i 's/8080/8082/g' /opt/JIRA/conf/server.xml"
 	}
 	
 	exec{'start jira':

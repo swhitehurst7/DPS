@@ -7,8 +7,8 @@ class java::config{
     file{'/etc/profile.d/java.sh':
 		require => Exec['Java Extract'],
 	    ensure => present,
-        content => 'export JAVA_HOME=/opt/jdk1.8.0_45\n
-		export JRE_HOME=/opt/jdk1.8.0_45/jre\n
+        content => 'export JAVA_HOME=/opt/jdk1.8.0_45
+		export JRE_HOME=/opt/jdk1.8.0_45/jre
 		export PATH=$JAVA_HOME/bin:$JRE_HOME/bin:$PATH',
 		mode => 755
     }

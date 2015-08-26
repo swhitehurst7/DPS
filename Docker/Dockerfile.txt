@@ -1,4 +1,3 @@
-
 FROM ubuntu:14.04
 
 RUN sudo apt-get update -y
@@ -6,9 +5,70 @@ RUN sudo apt-get install -y wget
 RUN sudo apt-get install -y tar
 RUN sudo apt-get install -y openssh-server openssh-client
 RUN sudo apt-get install -y puppet puppetmaster
+RUN sudo wget -qO- https://get.docker.com/ | sh
+RUN sudo usermod -aG docker vagrant
 RUN sudo ufw disable
 RUN sudo sed -i -e '2i10.50.15.184 Master.netbuilder.private puppetmaster' /etc/hosts
 RUN sudo sed -i -e '2i127.0.0.1 Master.netbuilder.private' /etc/hosts
 RUN sudo touch /etc/puppet/autosign.conf
 RUN sudo echo 'Agent.netbuilder.private' >> /etc/puppet/autosign.conf
 RUN sudo touch /etc/puppet/manifests/site.pp
+
+WORKDIR /opt
+RUN sudo pwd
+RUN sudo wget http://10.50.15.19:8080/aaron/downloads/jdk-8u45-linux-x64.tar.gz
+RUN sudo ls -a
+RUN sudo tar zxvf jdk-8u45-linux-x64.tar.gz
+RUN JAVA_HOME=/opt/jdk1.8.0_45 &&\
+    export JAVA_HOME && \
+    PATH=$PATH:$PATH:$JAVA_HOME/bin && \
+    JRE_HOME=/opt/jdk1.8.0_45/jre && \
+    export JRE_HOME && \
+    PATH=$PATH:$PATH:JRE_HOME/bin
+RUN sudo update-alternatives --install /usr/bin/java java /opt/jdk1.8.0_45/bin/java 1
+RUN sudo update-alternatives --install /usr/bin/java java /opt/jdk1.8.0_45/bin/javac 1
+RUN java -version
+
+WORKDIR /opt
+RUN sudo wget http://http://10.50.15.19:8080/aaron/downloads/apache-maven-3.3.3-bin.tar.gz
+RUN sudo ls -a
+RUN sudo tar zxvf apache-maven-3.3.3-bin.tar.gz
+RUN export MAVEN_HOME=/opt/apache-maven-3.3.3/bin && \
+    export M2=$MAVEN_HOME/bin && \
+    export PATH=$M2/bin:$PATH
+RUN sudo update-alternatives --install /usr/bin/mvn mvn /opt/apache-maven-3.3.3/bin/mvn 2
+RUN mvn -version
+
+WORKDIR /opt
+RUN sudo apt-get install -y libcurl4-gnutls-dev libexpat1-dev gettext \libz-dev libssl-dev
+RUN sudo wget -nv http://10.50.15.19:8080/aaron/downloads/git-2.5.0.tar.gz -O git-2.5.0.tar.gz
+RUN sudo ls -a
+RUN sudo tar zxvf git-2.5.0.tar.gz
+WORKDIR /opt/git-2.5.0
+RUN sudo make prefix=/usr/local all
+RUN sudo make prefix=/usr/local install
+
+WORKDIR /opt
+RUN sudo wget http://10.50.15.19:8080/aaron/downloads/atlassian-jira-6.4.9-x64.bin
+RUN sudo chmod +x atlassian-jira-6.4.9-x64.bin
+RUN sudo ./atlassian-jira-6.4.9-x64.bin -q
+RUN sudo sed -i 's/8080/8082/g' /opt/JIRA/conf/server.xml
+RUN sudo service jira start
+
+WORKDIR /opt
+RUN sudo wget http://www.sonatype.org/downloads/nexus-latest-bundle.tar.gz
+RUN sudo tar zxvf nexus-latest-bundle.tar.gz
+RUN sudo mv nexus-2.11.4-01/ /usr/local/
+RUN sudo mv sonatype-work/ /usr/local/
+RUN sudo ln -s nexus-2.11.4-01 nexus
+RUN sudo adduser -disabled-password -disabled-login nexus
+RUN sudo chown -R nexus:nexus /usr/local/nexus-2.11.4-01/
+RUN sudo chown -R nexus:nexus /usr/local/sonatype-work/
+RUN sudo su nexus -c './bin/nexus start'
+
+WORKDIR /opt
+RUN sudo apt-get -y install yum
+RUN sudo wget -q -O - http://pkg.jenkins-ci.org/debian/jenkins-ci.org.key | sudo apt-key add -
+RUN sudo sh -c "echo deb http://pkg.jenkins-ci.org/debian binary/ > /etc/apt/sources.list.d/jenkins.list"
+RUN sudo apt-get update
+RUN sudo apt-get -y install jenkins
